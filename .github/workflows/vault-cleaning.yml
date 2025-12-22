@@ -32,7 +32,6 @@ jobs:
         run: |
           gh issue create \
             --title "Weekly Vault Cleaning" \
-            --body-file cleaning-tasks.md \
-            --assignee "copilot"
+            --body-file cleaning-tasks.md
         env:
           GH_TOKEN: ${{ github.token }}

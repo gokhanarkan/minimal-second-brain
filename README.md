@@ -63,7 +63,7 @@ A GitHub Action runs every Monday and checks for:
 - Inbox items older than 3 days
 - Stale projects (30+ days)
 
-If issues are found, it creates a GitHub Issue and assigns it to Copilot. Copilot autonomously creates a PR with the fixes.
+If issues are found, it creates a GitHub Issue that mentions `@copilot`. Copilot picks up the issue and autonomously creates a PR with the fixes.
 
 Requires [GitHub Copilot coding agent](https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent).
 

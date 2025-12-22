@@ -371,10 +371,10 @@ def generate_issue_body(
         lines.append('')
         task_num += 1
 
-    # Footer
+    # Footer with Copilot mention
     lines.append('---')
     lines.append('')
-    lines.append('When complete, the PR should include all changes and updated manifests.')
+    lines.append('@copilot please complete these vault cleaning tasks and open a PR.')
     lines.append('')
 
     return '\n'.join(lines)
