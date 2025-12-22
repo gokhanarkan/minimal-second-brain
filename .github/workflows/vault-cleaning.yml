@@ -1,0 +1,38 @@
+name: Vault Cleaning
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
+  workflow_dispatch:      # Manual trigger
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  detect-and-create-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git log
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Detect cleaning tasks
+        id: detect
+        run: python .github/scripts/vault-cleaner.py
+
+      - name: Create issue for Copilot
+        if: steps.detect.outputs.has_tasks == 'true'
+        run: |
+          gh issue create \
+            --title "Weekly Vault Cleaning" \
+            --body-file cleaning-tasks.md \
+            --assignee "copilot"
+        env:
+          GH_TOKEN: ${{ github.token }}
