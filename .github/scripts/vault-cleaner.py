@@ -21,6 +21,7 @@ from typing import TypedDict
 # Configuration
 INBOX_AGE_THRESHOLD_DAYS = 3
 PROJECT_STALE_THRESHOLD_DAYS = 30
+EMPTY_FILE_THRESHOLD_CHARS = 50
 
 
 class FileItem(TypedDict):
@@ -197,7 +198,64 @@ def check_stale_projects(vault_root: Path) -> dict:
     return stale
 
 
-def generate_issue_body(manifest_issues: dict, inbox_items: dict, stale_projects: dict) -> str:
+def check_root_files(vault_root: Path) -> list[str]:
+    """Check for markdown files at vault root (should be in pillars)."""
+    root_files = []
+    excluded = {'README.md', 'CLAUDE.md', 'AGENTS.md'}
+
+    for f in vault_root.glob('*.md'):
+        if f.name not in excluded:
+            root_files.append(f.name)
+
+    return sorted(root_files)
+
+
+def check_empty_files(vault_root: Path) -> dict:
+    """Check for empty or stub files (< threshold chars of content)."""
+    empty_files: dict[str, list[str]] = {}
+
+    for pillar in get_pillars(vault_root):
+        pillar_empty: list[str] = []
+
+        # Check all .md files in the pillar
+        for folder in ['Inbox', 'Projects', 'Knowledge']:
+            folder_path = vault_root / pillar / folder
+            if not folder_path.exists():
+                continue
+
+            for f in folder_path.glob('*.md'):
+                # Skip manifest files
+                if f.name == 'MANIFEST.md':
+                    continue
+
+                try:
+                    content = f.read_text(encoding='utf-8')
+                    # Strip YAML frontmatter if present
+                    if content.startswith('---'):
+                        end = content.find('---', 3)
+                        if end != -1:
+                            content = content[end + 3:]
+                    # Strip whitespace and check length
+                    content = content.strip()
+                    if len(content) < EMPTY_FILE_THRESHOLD_CHARS:
+                        rel_path = f'{folder}/{f.name}'
+                        pillar_empty.append(rel_path)
+                except Exception:
+                    pass
+
+        if pillar_empty:
+            empty_files[pillar] = sorted(pillar_empty)
+
+    return empty_files
+
+
+def generate_issue_body(
+    manifest_issues: dict,
+    inbox_items: dict,
+    stale_projects: dict,
+    root_files: list[str],
+    empty_files: dict
+) -> str:
     """Generate the issue body for Copilot."""
     lines = [
         '# Vault Cleaning Tasks',
@@ -278,6 +336,41 @@ def generate_issue_body(manifest_issues: dict, inbox_items: dict, stale_projects
         lines.append('')
         task_num += 1
 
+    # Root files tasks
+    if root_files:
+        lines.append(f'## {task_num}. Move Files from Vault Root')
+        lines.append('')
+        lines.append('The following files are at the vault root and should be moved to a pillar:')
+        lines.append('')
+        for name in root_files:
+            lines.append(f'- `{name}`')
+        lines.append('')
+        lines.append('**Instructions:** Move each file to the appropriate pillar:')
+        lines.append('- Determine which pillar it belongs to (Personal, Work, etc.)')
+        lines.append('- Move to `[Pillar]/Knowledge/` or `[Pillar]/Projects/`')
+        lines.append('- Update MANIFEST.md if moved to Knowledge/')
+        lines.append('')
+        task_num += 1
+
+    # Empty files tasks
+    if empty_files:
+        lines.append(f'## {task_num}. Review Empty/Stub Files')
+        lines.append('')
+        lines.append(f'The following files have less than {EMPTY_FILE_THRESHOLD_CHARS} characters of content:')
+        lines.append('')
+        for pillar, files in empty_files.items():
+            lines.append(f'### {pillar}/')
+            lines.append('')
+            for rel_path in files:
+                lines.append(f'- `{rel_path}`')
+            lines.append('')
+        lines.append('**Instructions:** For each file:')
+        lines.append('- Add content if it was meant to be filled in')
+        lines.append('- Delete if it is no longer needed')
+        lines.append('- Update MANIFEST.md if deleted from Knowledge/')
+        lines.append('')
+        task_num += 1
+
     # Footer
     lines.append('---')
     lines.append('')
@@ -309,9 +402,13 @@ def main():
     manifest_issues = check_manifest_sync(vault_root)
     inbox_items = check_inbox_items(vault_root)
     stale_projects = check_stale_projects(vault_root)
+    root_files = check_root_files(vault_root)
+    empty_files = check_empty_files(vault_root)
 
     # Report findings
-    has_tasks = bool(manifest_issues or inbox_items or stale_projects)
+    has_tasks = bool(
+        manifest_issues or inbox_items or stale_projects or root_files or empty_files
+    )
 
     if manifest_issues:
         print(f'Manifest issues: {len(manifest_issues)} pillar(s)')
@@ -330,12 +427,25 @@ def main():
         for pillar, projs in stale_projects.items():
             print(f'  {pillar}: {len(projs)} project(s)')
 
+    if root_files:
+        print(f'Root files: {len(root_files)} file(s)')
+        for name in root_files:
+            print(f'  {name}')
+
+    if empty_files:
+        total = sum(len(files) for files in empty_files.values())
+        print(f'Empty/stub files: {total} file(s)')
+        for pillar, files in empty_files.items():
+            print(f'  {pillar}: {len(files)} file(s)')
+
     if not has_tasks:
         print('No cleaning tasks found. Vault is tidy!')
 
     # Generate issue body if there are tasks
     if has_tasks:
-        issue_body = generate_issue_body(manifest_issues, inbox_items, stale_projects)
+        issue_body = generate_issue_body(
+            manifest_issues, inbox_items, stale_projects, root_files, empty_files
+        )
 
         # Write to file for gh CLI
         output_path = vault_root / 'cleaning-tasks.md'
