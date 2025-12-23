@@ -371,10 +371,10 @@ def generate_issue_body(
         lines.append('')
         task_num += 1
 
-    # Footer with Copilot mention
+    # Footer
     lines.append('---')
     lines.append('')
-    lines.append('@copilot please complete these vault cleaning tasks and open a PR.')
+    lines.append('Assign this issue to your preferred AI agent (Copilot, Claude, Codex) or complete manually.')
     lines.append('')
 
     return '\n'.join(lines)
