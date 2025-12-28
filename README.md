@@ -222,6 +222,14 @@ The template includes multiple formats. **You don't need all of them.**
 
 Pick one and delete the rest. Less clutter, same functionality.
 
+## Why This Approach
+
+**Why Obsidian?** Plain markdown files in folders. No vendor lock-in. If Obsidian disappears, open the same files in VS Code or any text editor. iCloud syncs to your phone. Git tracks changes. AI assistants can read and edit plain text directly.
+
+**Why not Claude Projects?** Your knowledge isn't static. You update notes, revise goals, add meeting summaries. Claude Projects are snapshots. This system is a flowing river with version history and offline access.
+
+**Why AI-native?** As of 2025, AI assistants are better at finding, reading, and summarising your notes than you are. Let them handle retrieval and synthesis while you focus on capture and organisation.
+
 ## Philosophy
 
 1. **Capture without friction** - No templates, no decisions
