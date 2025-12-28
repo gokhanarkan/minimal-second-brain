@@ -2,14 +2,14 @@ name: Tests
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
     paths:
       - '.github/scripts/**'
       - '.claude/hooks/**'
       - 'tests/**'
       - 'pyproject.toml'
   pull_request:
-    branches: [main]
+    branches: [dev]
     paths:
       - '.github/scripts/**'
       - '.claude/hooks/**'
