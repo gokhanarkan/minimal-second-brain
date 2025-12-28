@@ -14,23 +14,124 @@ Three folders. Zero templates. Works seamlessly with Claude Code, GitHub Copilot
 
 That's it. The automation handles the rest.
 
-## Structure
+## Architecture
 
 ```
-Personal/
-├── Inbox/      # Quick captures, process later
-├── Projects/   # Active work with deadlines
-└── Knowledge/  # Reference, ideas, concepts
-    └── MANIFEST.md
+minimal-second-brain/
+├── .claude/
+│   ├── hooks/
+│   │   └── update-manifest.py    # Auto-updates MANIFEST.md on file changes
+│   ├── settings.local.json       # Hook configuration for Claude Code
+│   └── skills/
+│       └── archive-project/      # AI skill for archiving completed projects
+│           └── SKILL.md
+├── .github/
+│   ├── copilot-instructions.md   # Quick reference for GitHub Copilot
+│   ├── scripts/
+│   │   └── vault-cleaner.py      # Detects stale items and manifest issues
+│   └── workflows/
+│       └── vault-cleaning.yml    # Weekly maintenance automation
+├── Personal/                     # Example pillar (duplicate for Work/, Studies/, etc.)
+│   ├── Inbox/                    # Quick captures, process later
+│   ├── Projects/                 # Active work with deadlines
+│   ├── Knowledge/                # Reference, ideas, concepts
+│   │   └── MANIFEST.md           # Auto-generated index for AI discovery
+│   ├── CLAUDE.md                 # Pillar-specific Claude instructions
+│   └── AGENTS.md                 # Pillar-specific universal agent instructions
+├── .gitignore                    # Excludes Obsidian cache and OS files
+├── AGENTS.md                     # Root-level universal agent instructions
+├── CLAUDE.md                     # Root-level Claude Code instructions
+├── LICENSE                       # MIT licence
+└── README.md
 ```
 
-### Where to Put Notes
+## How It Works
 
-| Situation | Location |
-|-----------|----------|
-| Quick thought | `Inbox/` |
-| Active work with deadline | `Projects/` |
-| Reference, ideas, concepts | `Knowledge/` |
+```mermaid
+flowchart LR
+    subgraph Capture
+        A[Quick thought] --> B[Inbox/]
+        C[New project] --> D[Projects/]
+        E[Reference material] --> F[Knowledge/]
+    end
+
+    subgraph Automation
+        F --> G[Hook updates MANIFEST.md]
+        D --> H[Archive skill creates summary]
+        H --> F
+    end
+
+    subgraph Maintenance
+        I[Weekly Action] --> J{Issues found?}
+        J -->|Yes| K[Create GitHub Issue]
+        K --> L[Assign to AI agent]
+        L --> M[PR with fixes]
+    end
+```
+
+### The Manifest System
+
+AI assistants read `MANIFEST.md` to understand your knowledge without scanning every file:
+
+```mermaid
+flowchart TD
+    A[AI Assistant] --> B[Read MANIFEST.md]
+    B --> C{Find relevant file?}
+    C -->|Yes| D[Read specific file]
+    C -->|No| E[Ask user for clarification]
+    D --> F[Answer question with context]
+```
+
+## Example Use Cases
+
+Your second brain becomes powerful when AI can query your personal knowledge:
+
+### Health & Insurance
+
+```
+You: "When does my dental insurance renew?"
+AI: *reads Knowledge/Health Insurance.md*
+    "Your dental cover renews on 1st April 2025.
+     You have £150 remaining from your £500 annual limit."
+
+You: "Can I claim for a white filling?"
+AI: *reads Knowledge/Health Insurance.md*
+    "Yes, white fillings are covered up to £180 per tooth
+     under your current policy. You've claimed £85 this year."
+```
+
+### Work Context
+
+```
+You: "What feedback did I give Sarah in our last 1:1?"
+AI: *reads Projects/Team 1-1s.md*
+    "On Dec 15th, you discussed her API refactoring work.
+     You suggested she document the breaking changes better
+     and praised her test coverage improvements."
+
+You: "Help me write my self-assessment"
+AI: *reads git history + Projects/*
+    "Based on your commits and project notes, here are your
+     key achievements this quarter: shipped 3 features,
+     mentored 2 junior engineers, reduced API latency by 40%..."
+```
+
+### Personal Planning
+
+```
+You: "What are my goals for Q1?"
+AI: *reads Knowledge/2025 Goals.md*
+    "Your Q1 focus areas are:
+     1. Complete thesis literature review
+     2. Ship the auth feature at work
+     3. Run 3x per week consistently"
+
+You: "Archive the kitchen renovation project"
+AI: *creates Knowledge/Kitchen Renovation (Archived).md*
+    *stores commit hash for restoration*
+    *deletes original project file*
+    "Done. Summary saved with £12,400 final cost and contractor notes."
+```
 
 ## Adding Pillars
 
@@ -59,6 +160,18 @@ Say "archive the project" and Claude will:
 3. Delete the original project file
 
 ### Weekly Cleaning (GitHub Actions)
+
+```mermaid
+flowchart LR
+    A[Monday 9 AM] --> B[vault-cleaner.py]
+    B --> C{Found issues?}
+    C -->|Stale inbox items| D[Create Issue]
+    C -->|Out-of-sync manifests| D
+    C -->|Old projects| D
+    C -->|No issues| E[Done]
+    D --> F[Assign to Copilot/Claude/Manual]
+    F --> G[PR with fixes]
+```
 
 A GitHub Action runs every Monday and checks for:
 - Out-of-sync manifests
