@@ -15,6 +15,7 @@ on:
       - '.claude/hooks/**'
       - 'tests/**'
       - 'pyproject.toml'
+  workflow_dispatch:
 
 jobs:
   test:
