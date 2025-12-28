@@ -1,5 +1,7 @@
 # Minimal Second Brain
 
+[![Tests](https://github.com/gokhanarkan/minimal-second-brain/actions/workflows/tests.yml/badge.svg?branch=dev)](https://github.com/gokhanarkan/minimal-second-brain/actions/workflows/tests.yml)
+
 A simple, AI-native knowledge management system for Obsidian.
 
 Three folders. Zero templates. Works seamlessly with Claude Code, GitHub Copilot, and other AI assistants.
