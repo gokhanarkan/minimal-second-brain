@@ -229,41 +229,130 @@ No special tokens or configuration needed.
 
 ### Testing the Automation
 
-**Manifest sync (Claude Code hook):**
+#### 1. Claude Code Hook (Real-time Manifest Updates)
+
+Prerequisites: Claude Code with hooks enabled
+
 ```bash
-# In Claude Code, create a file in Knowledge/
-> Create Personal/Knowledge/Test.md with heading "# Test Note"
-# Check MANIFEST.md - should auto-update with [[Test]]
+# 1. Open your vault in Claude Code
+claude
+
+# 2. Ask Claude to create a new note in Knowledge/
+> Create a file called "Test Note.md" in Personal/Knowledge/ with heading "# Test Note" and some content
+
+# 3. Check if MANIFEST.md was auto-updated
+> Read Personal/Knowledge/MANIFEST.md
+
+# Expected: You should see [[Test Note]] in the manifest table
+
+# Cleanup:
+> Delete Personal/Knowledge/Test Note.md and update the manifest
 ```
 
-**Manifest sync (GitHub Action):**
-```bash
-# Create file and push
-echo "# Test" > Personal/Knowledge/Test.md
-git add . && git commit -m "Test sync" && git push
-# Check Actions tab - "Sync Manifests" should run and commit the manifest update
-```
+#### 2. Claude Code Skill (Project Archiving)
 
-**Project archiving (Claude Code):**
+Prerequisites: Claude Code, a test project file
+
 ```bash
-# Create a test project, then archive it
-> Create Personal/Projects/Test Project.md with some notes
+# 1. Create a test project
+> Create Personal/Projects/Test Project.md with some project notes about testing the archive feature
+
+# 2. Trigger the archive skill
 > Archive the Test Project
-# Verify: Project moved to Knowledge/ with summary, original deleted
+
+# 3. Verify:
+# - Personal/Projects/Test Project.md should be deleted
+# - Personal/Knowledge/Test Project (Archived).md should exist with summary
+# - MANIFEST.md should include the archived file
+
+> Read Personal/Knowledge/MANIFEST.md
+> Read Personal/Knowledge/Test Project (Archived).md
+
+# Cleanup:
+> Delete Personal/Knowledge/Test Project (Archived).md
 ```
 
-**Weekly cleaning (manual trigger):**
+#### 3. GitHub Action (Manifest Sync on Push)
+
 ```bash
-# Go to Actions > Vault Cleaning > Run workflow
-# Or test locally:
-python .github/scripts/vault-cleaner.py
-cat cleaning-tasks.md  # Shows detected issues
+# 1. Create a test file in Knowledge (without updating manifest manually)
+echo "# Test File" > Personal/Knowledge/Test.md
+
+# 2. Commit and push
+git add Personal/Knowledge/Test.md
+git commit -m "Test manifest sync action"
+git push
+
+# 3. Check GitHub Actions tab - wait for "Sync Manifests" workflow to complete
+# It should auto-commit an update to MANIFEST.md
+
+# 4. Pull to see the auto-generated manifest update
+git pull
+cat Personal/Knowledge/MANIFEST.md
+# Expected: [[Test]] should now be in the manifest
+
+# Cleanup:
+git rm Personal/Knowledge/Test.md
+git commit -m "Remove test file"
+git push
 ```
 
-**Check manifest sync status:**
+#### 4. GitHub Action (Weekly Vault Cleaning)
+
 ```bash
-python .github/scripts/sync-manifests.py --check
+# Manual trigger test:
+# 1. Go to GitHub Actions > Vault Cleaning workflow
+# 2. Click "Run workflow" button (top right)
+# 3. Select branch: main
+# 4. Click "Run workflow"
+# 5. Wait for it to complete
+# - If no issues found: workflow succeeds silently
+# - If issues found: creates a GitHub Issue
+
+# Create issues to detect:
+echo "# Untracked Note" > Personal/Knowledge/Untracked.md
+# Don't update manifest - this creates a sync issue
+
+git add .
+git commit -m "Add untracked file for testing"
+git push
+
+# Trigger the workflow manually - it should create an issue about the out-of-sync manifest
+```
+
+#### 5. Local Script Testing
+
+```bash
+# Check if manifests are in sync
+python3 .github/scripts/sync-manifests.py --check
 # Exit 0 = in sync, Exit 1 = out of sync
+
+# Force sync all manifests
+python3 .github/scripts/sync-manifests.py
+
+# Run vault cleaner locally
+python3 .github/scripts/vault-cleaner.py
+cat cleaning-tasks.md  # Shows detected issues (if any)
+```
+
+#### Quick Verification Checklist
+
+| Automation | How to Test | Expected Result |
+|------------|-------------|-----------------|
+| Hook (manifest) | Create file in Knowledge/ via Claude | MANIFEST.md auto-updates |
+| Skill (archive) | Say "archive the project" | Project moved to Knowledge/ with summary |
+| Action (sync) | Push file to Knowledge/ | MANIFEST.md auto-committed |
+| Action (clean) | Manual trigger on GitHub | Issue created if problems found |
+| Script (sync) | `python3 sync-manifests.py --check` | Exit 0 if in sync |
+| Script (clean) | `python3 vault-cleaner.py` | Creates cleaning-tasks.md if issues |
+
+#### Run Unit Tests
+
+```bash
+# Switch to dev branch (tests live there)
+git checkout dev
+python3 -m pytest tests/ -v
+git checkout main
 ```
 
 ## AI Instructions
