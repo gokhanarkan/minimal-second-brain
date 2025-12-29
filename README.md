@@ -253,6 +253,18 @@ Pick one and delete the rest. Less clutter, same functionality.
 3. **Knowledge is discoverable** - Manifests let AI navigate your notes
 4. **Automation disappears** - Maintenance happens in the background
 
+## Development
+
+Tests live on the `dev` branch to keep the template clean. When you use this template, you get only what you need - no test files, no dev dependencies.
+
+If you want to run or extend the tests:
+
+```bash
+git checkout dev
+pip install pytest
+pytest tests/
+```
+
 ## Licence
 
 MIT
