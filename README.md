@@ -36,8 +36,10 @@ minimal-second-brain/
 ├── .github/
 │   ├── copilot-instructions.md   # Quick reference for GitHub Copilot
 │   ├── scripts/
+│   │   ├── sync-manifests.py     # Regenerates all MANIFEST.md files
 │   │   └── vault-cleaner.py      # Detects stale items and manifest issues
 │   └── workflows/
+│       ├── manifest-sync.yml     # Auto-sync manifests on push
 │       └── vault-cleaning.yml    # Weekly maintenance automation
 ├── Personal/                     # Example pillar (duplicate for Work/, Studies/, etc.)
 │   ├── Inbox/                    # Quick captures, process later
@@ -64,8 +66,10 @@ flowchart LR
     end
 
     subgraph Automation
-        F --> G[Hook updates MANIFEST.md]
-        D --> H[Archive skill creates summary]
+        F --> G[MANIFEST.md updated]
+        G -.->|Claude Code| G1[Hook - real-time]
+        G -.->|GitHub Action| G2[On push]
+        D --> H[Archive creates summary]
         H --> F
     end
 
@@ -154,18 +158,30 @@ The automation scripts auto-detect pillars. Any folder with `Inbox/`, `Projects/
 
 ## Automation
 
-### Manifest Updates (Claude Code)
+The template includes two automation paths. Use whichever fits your tools.
 
-The `.claude/hooks/update-manifest.py` hook automatically updates `MANIFEST.md` whenever you create or edit files in `Knowledge/`.
+### Manifest Updates
 
-Requires [Claude Code](https://claude.ai/claude-code) with hooks enabled.
+**Option A: Claude Code (real-time)**
 
-### Project Archiving (Claude Code)
+The `.claude/hooks/update-manifest.py` hook automatically updates `MANIFEST.md` whenever you create or edit files in `Knowledge/`. Requires [Claude Code](https://claude.ai/claude-code) with hooks enabled.
 
-Say "archive the project" and Claude will:
+**Option B: GitHub Actions (on push)**
+
+The `.github/workflows/manifest-sync.yml` action updates manifests when you push changes to `Knowledge/`. Works with any AI tool or manual workflow.
+
+### Project Archiving
+
+**With Claude Code:** Say "archive the project" and Claude will:
 1. Create an AI-generated summary in `Knowledge/`
 2. Store the git commit hash for restoration
 3. Delete the original project file
+
+**With other AI tools:** Ask your AI assistant to follow the same workflow:
+```
+Archive the "Project Name" project - create a summary in Knowledge/,
+save the commit hash for restoration, and delete the original from Projects/
+```
 
 ### Weekly Cleaning (GitHub Actions)
 
