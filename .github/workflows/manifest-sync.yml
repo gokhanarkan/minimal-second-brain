@@ -1,0 +1,38 @@
+name: Sync Manifests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/Knowledge/**'
+      - '!**/Knowledge/MANIFEST.md'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Sync manifests
+        run: python .github/scripts/sync-manifests.py
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Sync Knowledge manifests"
+            git push
+          fi
