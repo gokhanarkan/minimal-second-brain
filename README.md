@@ -227,6 +227,45 @@ No special tokens or configuration needed.
 | Stale project threshold | `.github/scripts/vault-cleaner.py` | 30 days |
 | Cleaning schedule | `.github/workflows/vault-cleaning.yml` | Monday 9 AM UTC |
 
+### Testing the Automation
+
+**Manifest sync (Claude Code hook):**
+```bash
+# In Claude Code, create a file in Knowledge/
+> Create Personal/Knowledge/Test.md with heading "# Test Note"
+# Check MANIFEST.md - should auto-update with [[Test]]
+```
+
+**Manifest sync (GitHub Action):**
+```bash
+# Create file and push
+echo "# Test" > Personal/Knowledge/Test.md
+git add . && git commit -m "Test sync" && git push
+# Check Actions tab - "Sync Manifests" should run and commit the manifest update
+```
+
+**Project archiving (Claude Code):**
+```bash
+# Create a test project, then archive it
+> Create Personal/Projects/Test Project.md with some notes
+> Archive the Test Project
+# Verify: Project moved to Knowledge/ with summary, original deleted
+```
+
+**Weekly cleaning (manual trigger):**
+```bash
+# Go to Actions > Vault Cleaning > Run workflow
+# Or test locally:
+python .github/scripts/vault-cleaner.py
+cat cleaning-tasks.md  # Shows detected issues
+```
+
+**Check manifest sync status:**
+```bash
+python .github/scripts/sync-manifests.py --check
+# Exit 0 = in sync, Exit 1 = out of sync
+```
+
 ## AI Instructions
 
 The vault includes instruction files for AI assistants:
