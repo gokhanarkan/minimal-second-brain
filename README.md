@@ -31,7 +31,9 @@ minimal-second-brain/
 │   │   └── update-manifest.py    # Auto-updates MANIFEST.md on file changes
 │   ├── settings.local.json       # Hook configuration for Claude Code
 │   └── skills/
-│       └── archive-project/      # AI skill for archiving completed projects
+│       ├── archive-project/      # AI skill for archiving completed projects
+│       │   └── SKILL.md
+│       └── github-summary/       # AI skill for summarising GitHub activity
 │           └── SKILL.md
 ├── .github/
 │   ├── copilot-instructions.md   # Quick reference for GitHub Copilot
@@ -192,6 +194,23 @@ The `.github/workflows/manifest-sync.yml` action updates manifests when you push
 Archive the "Project Name" project - create a summary in Knowledge/,
 save the commit hash for restoration, and delete the original from Projects/
 ```
+
+### GitHub Activity Summary
+
+Generate AI-written summaries of your GitHub activity. The skill fetches issues, PRs, and commits, then synthesises them into narrative prose with inline URLs.
+
+**With Claude Code:** Say `/github-summary` or "summarise my GitHub activity" and Claude will:
+1. Ask which organisation to summarise
+2. Ask for the time period (last 7/14/30 days, custom range)
+3. Fetch issues, PRs authored, PRs reviewed, and commits
+4. Gather deep context (comments, reviews, linked items)
+5. Write a natural language summary to your Inbox
+
+**Prerequisites:** Either GitHub MCP Server configured, or `gh` CLI authenticated (`gh auth login`).
+
+**Output style:** The skill produces narrative paragraphs, not bullet lists. A typical summary reads like: "This week I focused on authentication improvements. I identified a session handling bug affecting Safari users (#234), implemented a fix using PKCE flow (#312), and updated documentation to reflect the changes."
+
+See the [standalone repository](https://github.com/gokhanarkan/claude-github-summary) for detailed documentation.
 
 ### Weekly Cleaning (GitHub Actions)
 

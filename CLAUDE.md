@@ -70,6 +70,11 @@ Each `Knowledge/` folder has a `MANIFEST.md` that indexes all files.
 - Write clean, descriptive commit messages
 - Keep messages concise and focused on what changed
 
+## Available Skills
+
+- **archive-project** - Say "archive [project name]" to move completed projects to Knowledge/ with an AI-generated summary
+- **github-summary** - Say "/github-summary" or "summarise my GitHub activity" to generate a narrative summary of your issues, PRs, and commits
+
 ## Pillars
 
 - [[Personal/CLAUDE|Personal]]
